@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GymPro | Gym Management</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0c1220;color:#f5f7fb;font-family:Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:7px;padding:11px 15px;background:#b9f56b;color:#17220e;font-weight:bold}
+input,select{width:100%;padding:11px;margin:7px 0 14px;background:#111b2d;color:white;border:1px solid #35435a;border-radius:7px}
+label{font-size:13px;color:#aebbd0}
+.login{max-width:390px;margin:70px auto;background:#182337;padding:28px;border-radius:16px;border:1px solid #304059}
+.logo{font-size:27px;font-weight:bold;color:#b9f56b}
+.muted{color:#9eacc1;font-size:13px}
+.note{padding:12px;background:#101a2a;border-radius:8px;line-height:1.8;font-size:13px;margin-top:20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 24px;background:#141e30;border-bottom:1px solid #2d3a50}
+header h2{margin:0}
+main{max-width:1200px;margin:auto;padding:24px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:#182337;border:1px solid #2d3a50;padding:19px;border-radius:12px;margin-bottom:18px;min-width:0}
+.number{font-size:27px;font-weight:bold;color:#b9f56b;margin-top:15px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.secondary{background:#2c3a51;color:white}
+.danger{background:#572a36;color:#fff}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #2d3a50;font-size:13px}
+th{color:#b9f56b}
+.table-wrap{overflow-x:auto}
+.hidden{display:none!important}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}
+.status{color:#b9f56b}
+.expired{color:#ff929f}
+.message{background:#24374a;padding:12px;border-radius:8px;margin:12px 0}
+@media(max-width:750px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:13px}header{padding:14px}.card{padding:13px}}
+@media(max-width:430px){.form-grid{grid-template-columns:1fr}.logo{font-size:21px}header h2{font-size:17px}}
+</style>
+</head>
+<body>
+
+<section id="loginPage" class="login">
+  <div class="logo">GYMPRO.</div>
+  <p class="muted">GYM MANAGEMENT SYSTEM</p>
+  <h2>Welcome Back!</h2>
+  <p class="muted">Login to manage your gym.</p>
+
+  <form id="loginForm">
+    <label>Username</label>
+    <input id="username" value="admin" required>
+    <label>Password</label>
+    <input id="password" type="password" value="1234" required>
+    <button type="submit" style="width:100%">Login to Dashboard →</button>
+  </form>
+
+  <div class="note">
+    <b>DEMO LOGIN</b><br>
+    Username: admin<br>
+    Password: 1234
+  </div>
+</section>
+
+<section id="app" class="hidden">
+<header>
+  <div class="logo">GYMPRO.</div>
+  <div>
+    <button class="secondary" onclick="openPage('dashboard')">Dashboard</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<main>
+<section id="dashboard">
+  <h1>Gym Dashboard</h1>
+  <p class="muted" id="todayDate"></p>
+  <div class="cards">
+    <div class="card">Total Members<div class="number" id="totalMembers">0</div></div>
+    <div class="card">Today's Attendance<div class="number" id="totalAttendance">0</div></div>
+    <div class="card">Pending Fees<div class="number" id="totalPending">₹0</div></div>
+    <div class="card">Active Members<div class="number" id="totalActive">0</div></div>
+  </div>
+  <div class="actions">
+    <button onclick="openPage('members')">👥 Members</button>
+    <button onclick="openPage('attendance')">📅 Attendance</button>
+    <button onclick="openPage('fees')">💰 Fees</button>
+    <button onclick="openPage('plans')">🏋️ Membership Plans</button>
+  </div>
+  <div class="card">
+    <h3>Recent Members</h3>
+    <div id="recentMembers" class="table-wrap"></div>
+  </div>
+</section>
+
+<section id="members" class="hidden">
+  <h2>Member Management</h2>
+  <div class="card">
+    <h3>Add New Member</h3>
+    <form id="memberForm">
+      <div class="form-grid">
+        <div><label>Full Name</label><input id="memberName" required></div>
+        <div><label>Phone Number</label><input id="memberPhone" type="tel" required></div>
+        <div><label>Membership Plan</label>
+          <select id="memberPlan">
+            <option>Monthly</option><option>Quarterly</option>
+            <option>Half-Yearly</option><option>Yearly</option>
+          </select>
+        </div>
+        <div><label>Total Fees (₹)</label><input id="memberFee" type="number" min="0" value="1200" required></div>
+        <div><label>Paid Amount (₹)</label><input id="memberPaid" type="number" min="0" value="0" required></div>
+        <div><label>Expiry Date</label><input id="memberExpiry" type="date" required></div>
+      </div>
+      <button type="submit">＋ Add Member</button>
+    </form>
+  </div>
+  <div class="card">
+    <input id="memberSearch" placeholder="Search member..." oninput="renderMembers()">
+    <div id="membersTable" class="table-wrap"></div>
+  </div>
+</section>
+
+<section id="attendance" class="hidden">
+  <h2>Attendance Management</h2>
+  <div class="card">
+    <label>Select Member</label>
+    <select id="attendanceMember"></select>
+    <button onclick="markAttendance()">Mark Attendance</button>
+  </div>
+  <div class="card">
+    <h3>Attendance History</h3>
+    <div id="attendanceTable" class="table-wrap"></div>
+  </div>
+</section>
+
+<section id="fees" class="hidden">
+  <h2>Fees & Payments</h2>
+  <div class="card">
+    <label>Select Member</label>
+    <select id="paymentMember"></select>
+    <label>Payment Amount (₹)</label>
+    <input id="paymentAmount" type="number" min="1" placeholder="Enter amount">
+    <label>Payment Method</label>
+    <select id="paymentMethod"><option>Cash</option><option>UPI</option><option>Bank Transfer</option></select>
+    <button onclick="addPayment()">Record Payment</button>
+  </div>
+  <div class="card">
+    <h3>Payment History</h3>
+    <div id="paymentsTable" class="table-wrap"></div>
+  </div>
+</section>
+
+<section id="plans" class="hidden">
+  <h2>Membership Plans</h2>
+  <div class="cards" id="plansList"></div>
+</section>
+</main>
+</section>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(id){return document.getElementById(id);};
+
+function today(){
+  var d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function future(days){
+  var d=new Date();
+  d.setDate(d.getDate()+days);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function money(n){return "₹"+Number(n||0).toLocaleString("en-IN");}
+function safe(v){
+  return String(v==null?"":v).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function dateText(d){
+  if(!d)return "-";
+  var x=new Date(d+"T12:00:00");
+  return isNaN(x.getTime())?d:x.toLocaleDateString("en-IN");
+}
+function read(key,fallback){
+  try{
+    var x=localStorage.getItem(key);
+    return x===null?fallback:JSON.parse(x);
+  }catch(e){return fallback;}
+}
+var members=read("gp_demo_members",[
+  {id:1001,name:"Rahul Kumar",phone:"9876543210",plan:"Quarterly",fee:3000,paid:3000,expiry:future(60)},
+  {id:1002,name:"Aman Singh",phone:"9876543211",plan:"Monthly",fee:1200,paid:500,expiry:future(15)},
+  {id:1003,name:"Priya Sharma",phone:"9876543212",plan:"Half-Yearly",fee:6000,paid:6000,expiry:future(120)},
+  {id:1004,name:"Rohit Verma",phone:"9876543213",plan:"Monthly",fee:1200,paid:0,expiry:future(-10)}
+]);
+var attendance=read("gp_demo_attendance",[]);
+var payments=read("gp_demo_payments",[]);
+var nextId=1001;
+members.forEach(function(m){nextId=Math.max(nextId,Number(m.id)+1);});
+
+function save(){
+  try{
+    localStorage.setItem("gp_demo_members",JSON.stringify(members));
+    localStorage.setItem("gp_demo_attendance",JSON.stringify(attendance));
+    localStorage.setItem("gp_demo_payments",JSON.stringify(payments));
+  }catch(e){}
+}
+function active(m){return m.expiry>=today();}
+function due(m){return Math.max(0,Number(m.fee)-Number(m.paid));}
+
+function login(e){
+  e.preventDefault();
+  if($("username").value.trim()==="admin" && $("password").value==="1234"){
+    $("loginPage").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    $("todayDate").textContent=new Date().toLocaleDateString("en-IN",{dateStyle:"full"});
+    refresh();
+    openPage("dashboard");
+  }else{
+    alert("Incorrect login. Use admin / 1234.");
+  }
+}
+$("loginForm").addEventListener("submit",login);
+
+window.logout=function(){
+  $("app").classList.add("hidden");
+  $("loginPage").classList.remove("hidden");
+};
+
+window.openPage=function(page){
+  ["dashboard","members","attendance","fees","plans"].forEach(function(p){
+    $(p).classList.toggle("hidden",p!==page);
+  });
+  if(page==="members")renderMembers();
+  if(page==="attendance")renderAttendance();
+  if(page==="fees")renderPayments();
+  if(page==="plans")renderPlans();
+};
+
+function refresh(){
+  $("totalMembers").textContent=members.length;
+  $("totalAttendance").textContent=attendance.filter(function(a){return a.date===today();}).length;
+  $("totalPending").textContent=money(members.reduce(function(s,m){return s+due(m);},0));
+  $("totalActive").textContent=members.filter(active).length;
+  var list=members.slice(-5).reverse();
+  $("recentMembers").innerHTML=list.length?
+    "<table><tr><th>Name</th><th>ID</th><th>Plan</th><th>Status</th></tr>"+
+    list.map(function(m){
+      return "<tr><td>"+safe(m.name)+"</td><td>"+m.id+"</td><td>"+safe(m.plan)+"</td><td class='"+(active(m)?"status":"expired")+"'>"+(active(m)?"Active":"Expired")+"</td></tr>";
+    }).join("")+"</table>":"No members yet.";
+}
+
+$("memberExpiry").value=future(30);
+$("memberForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var fee=Number($("memberFee").value);
+  var paid=Number($("memberPaid").value);
+  var expiry=$("memberExpiry").value;
+  var name=$("memberName").value.trim();
+  var phone=$("memberPhone").value.trim();
+
+  if(!name||!phone||!expiry||fee<0||paid<0||paid>fee){
+    alert("Please check the member details and fee amounts.");
+    return;
+  }
+  var m={id:nextId++,name:name,phone:phone,plan:$("memberPlan").value,fee:fee,paid:paid,expiry:expiry};
+  members.push(m);
+  if(paid>0)payments.push({id:m.id,name:m.name,amount:paid,date:today(),method:"Cash"});
+  save();
+  this.reset();
+  $("memberFee").value=1200;
+  $("memberPaid").value=0;
+  $("memberExpiry").value=future(30);
+  refresh();
+  renderMembers();
+  alert("Member added successfully!");
+});
+
+window.renderMembers=function(){
+  var q=$("memberSearch").value.toLowerCase();
+  var list=members.filter(function(m){
+    return (m.name+" "+m.phone+" "+m.id).toLowerCase().indexOf(q)>=0;
+  });
+  $("membersTable").innerHTML=list.length?
+    "<table><tr><th>ID</th><th>Name</th><th>Phone</th><th>Plan</th><th>Expiry</th><th>Due</th><th>Action</th></tr>"+
+    list.map(function(m){
+      return "<tr><td>"+m.id+"</td><td>"+safe(m.name)+"</td><td>"+safe(m.phone)+"</td><td>"+safe(m.plan)+"</td><td>"+dateText(m.expiry)+"</td><td>"+money(due(m))+"</td><td><button class='danger' onclick='deleteMember("+m.id+")'>Delete</button></td></tr>";
+    }).join("")+"</table>":"<p>No members found.</p>";
+};
+window.deleteMember=function(id){
+  if(!confirm("Delete this member?"))return;
+  members=members.filter(function(m){return m.id!==id;});
+  attendance=attendance.filter(function(a){return a.id!==id;});
+  payments=payments.filter(function(p){return p.id!==id;});
+  save();refresh();renderMembers();
+};
+
+function renderAttendance(){
+  $("attendanceMember").innerHTML=members.map(function(m){
+    return "<option value='"+m.id+"'>"+safe(m.name)+" (#"+m.id+")</option>";
+  }).join("");
+  $("attendanceTable").innerHTML=attendance.length?
+    "<table><tr><th>Member</th><th>Date</th><th>Time</th></tr>"+
+    attendance.slice().reverse().map(function(a){
+      var m=members.find(function(x){return x.id===a.id;});
+      return "<tr><td>"+safe(m?m.name:"Unknown")+"</td><td>"+dateText(a.date)+"</td><td>"+safe(a.time)+"</td></tr>";
+    }).join("")+"</table>":"No attendance records yet.";
+}
+window.markAttendance=function(){
+  var id=Number($("attendanceMember").value);
+  var m=members.find(function(x){return x.id===id;});
+  if(!m){alert("Please add a member first.");return;}
+  if(!active(m)){alert("Membership expired.");return;}
+  if(attendance.some(function(a){return a.id===id&&a.date===today();})){
+    alert("Attendance is already marked today.");return;
+  }
+  attendance.push({id:id,date:today(),time:new Date().toLocaleTimeString("en-IN")});
+  save();refresh();renderAttendance();alert("Attendance marked successfully!");
+};
+
+function renderPayments(){
+  $("paymentMember").innerHTML=members.map(function(m){
+    return "<option value='"+m.id+"'>"+safe(m.name)+" — Due "+money(due(m))+"</option>";
+  }).join("");
+  $("paymentsTable").innerHTML=payments.length?
+    "<table><tr><th>Member</th><th>Amount</th><th>Date</th><th>Method</th></tr>"+
+    payments.slice().reverse().map(function(p){
+      return "<tr><td>"+safe(p.name)+"</td><td>"+money(p.amount)+"</td><td>"+dateText(p.date)+"</td><td>"+safe(p.method)+"</td></tr>";
+    }).join("")+"</table>":"No payments recorded.";
+}
+window.addPayment=function(){
+  var id=Number($("paymentMember").value);
+  var m=members.find(function(x){return x.id===id;});
+  var amount=Number($("paymentAmount").value);
+  if(!m){alert("Please add a member first.");return;}
+  if(!Number.isFinite(amount)||amount<=0||amount>due(m)){
+    alert("Enter an amount within the pending fees.");return;
+  }
+  m.paid+=amount;
+  payments.push({id:m.id,name:m.name,amount:amount,date:today(),method:$("paymentMethod").value});
+  $("paymentAmount").value="";
+  save();refresh();renderPayments();alert("Payment recorded successfully!");
+};
+
+function renderPlans(){
+  var plans=[
+    {name:"Monthly",duration:"1 Month",price:1200},
+    {name:"Quarterly",duration:"3 Months",price:3000},
+    {name:"Half-Yearly",duration:"6 Months",price:6000},
+    {name:"Yearly",duration:"12 Months",price:10000}
+  ];
+  $("plansList").innerHTML=plans.map(function(p){
+    var count=members.filter(function(m){return m.plan===p.name;}).length;
+    return "<div class='card'><p class='muted'>"+p.duration+"</p><h3>"+p.name+"</h3><div class='number'>"+money(p.price)+"</div><p class='muted'>Members: "+count+"</p><button onclick='openPage(\"members\")'>View Members</button></div>";
+  }).join("");
+}
+
+})();
+</script>
+</body>
+</html>
